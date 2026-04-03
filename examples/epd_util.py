@@ -1,3 +1,7 @@
+from pathlib import Path
+import subprocess
+from PIL import Image
+
 import requests
 import base64
 from datetime import datetime, timezone
@@ -6,6 +10,7 @@ import hashlib
 import json
 import os
 import zlib
+import sys
 from datetime import datetime
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -15,60 +20,6 @@ from cryptography.hazmat.primitives import padding
 
 request_id_prefix = "smartwizart-cli-app"
 image_id_prefix = "image-"
-epd_tools_path = "."
-request_id_file_path = f"{epd_tools_path}/request_id.txt"
-image_id_file_path   = f"{epd_tools_path}/image_id.txt"
-
-if not os.path.exists(request_id_file_path):
-    with open(request_id_file_path, "w", encoding="utf-8") as f:
-        f.write("1")
-
-def initialize_request_id_file(request_id_dir, initial_request_id_num):
-    global request_id_file_path
-    request_id_file_path = f"{request_id_dir}/request_id.txt"
-    with open(request_id_file_path, "w", encoding="utf-8") as f:
-        f.write(str(initial_request_id_num))
-
-def initialize_image_id_file(image_id_dir, initial_image_id_num):
-    global image_id_file_path
-    image_id_file_path = f"{image_id_dir}/image_id.txt"
-    with open(image_id_file_path, "w", encoding="utf-8") as f:
-        f.write(str(initial_image_id_num))
-
-def get_request_id_num(with_update):
-    with open(request_id_file_path, "r", encoding="utf-8") as f:
-        request_id_num = f.read().strip()
-    if with_update:
-        update_request_id_num(int(request_id_num))
-
-    return int(request_id_num)
-
-def update_request_id_num(request_id_num):
-    request_id_num += 1
-    with open(request_id_file_path, "w", encoding="utf-8") as f:
-        f.write(str(request_id_num))
-
-def get_request_id(with_update):
-    request_id_num = get_request_id_num(with_update)
-    request_id = f"{request_id_prefix}-{request_id_num}"
-    return request_id
-
-def get_image_id(with_update):
-    image_id_num = get_image_id_num(with_update)
-    return image_id_num
-
-def get_image_id_num(with_update):
-    with open(image_id_file_path, "r", encoding="utf-8") as f:
-        image_id_num = f.read().strip()
-    if with_update:
-        update_image_id_num(int(image_id_num))
-
-    return int(image_id_num)
-
-def update_image_id_num(image_id_num):
-    image_id_num += 1
-    with open(image_id_file_path, "w", encoding="utf-8") as f:
-        f.write(str(image_id_num))
 
 def get_current_request_utc():
     request_utc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -95,6 +46,7 @@ def send_device_register_request(api_url, request_id, request_utc, app_private_k
 
     try:
         response = requests.post(api_url, data=contents, headers=headers, timeout=60)
+        print(f"Device register response: {response.status_code} {response.text}")
     except requests.exceptions.Timeout:
         return None
     except requests.exceptions.RequestException as e:
@@ -239,6 +191,72 @@ X_OFFSET    = 0
 Y_OFFSET    = 0
 IMAGE_WIDTH       = 800
 IMAGE_HEIGHT      = 480
+
+def convert_image_to_s6(input_image_path, output_s6_path):
+    dither_png = input_image_path.with_suffix(input_image_path.suffix + ".dither.png")
+    output_image = Path(output_s6_path)
+
+    # dither + remap
+    current_dir = Path(__file__).resolve().parent
+    palette_png_path = current_dir / "palette.png"
+    subprocess.run([
+        "convert",
+        str(input_image_path),
+        "-resize", f"{IMAGE_WIDTH}x{IMAGE_HEIGHT}!",
+        "-colorspace", "RGB",
+        "-dither", "FloydSteinberg",
+        "-define", f"dither:diffusion-amount=100%",
+        "-remap", str(palette_png_path),
+        str(dither_png)
+    ])
+
+    img = Image.open(dither_png).convert("RGBA")
+    width, height = img.size
+    raw = img.tobytes("raw", "BGRA")
+
+    cfb = bytearray((width * height) // 2)
+
+    index = 0
+    for i in range(0, len(raw), 4):
+        b = raw[i + 0]
+        g = raw[i + 1]
+        r = raw[i + 2]
+        a = raw[i + 3]
+        r = (r * a) // 255
+        g = (g * a) // 255
+        b = (b * a) // 255
+
+        rgb = (r << 16) | (g << 8) | b
+
+        if rgb == 0x000000:
+            color = 0      # BLACK
+        elif rgb == 0xFFFF00:
+            color = 2      # YELLOW
+        elif rgb == 0xFF0000:
+            color = 3      # RED
+        elif rgb == 0x0000FF:
+            color = 5      # BLUE
+        elif rgb == 0x00FF00:
+            color = 6      # GREEN
+        else:
+            color = 1      # WHITE (default)
+
+        if index & 1:
+            cfb[index >> 1] |= color
+        else:
+            cfb[index >> 1] |= (color << 4)
+
+        index += 1
+        if index >= width * height:
+            break
+
+    if output_image:
+        with open(output_image, "wb") as f:
+            f.write(cfb)
+            f.flush()
+            os.fsync(f.fileno())
+
+    dither_png.unlink(missing_ok=True)
 
 def make_encrypted_image(image_id, s6_image_file_path, public_key, cbc_iv, x_offset, y_offset, width, height, caption, orientation):
 

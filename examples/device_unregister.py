@@ -19,11 +19,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
+        art_sdk_root = os.getcwd()
         device_id = sys.argv[1]
         api_url = f"http://smartwiz-art-{device_id}.local/api/control/request"
 
-        private_key_path         = f"{os.getcwd()}/app_private.der"
-        app_public_key_file_path = f"{os.getcwd()}/app_public.der"
+        private_key_path         = f"{art_sdk_root}/app_private.der"
+        app_public_key_file_path = f"{art_sdk_root}/app_public.der"
         if not os.path.exists(private_key_path):
             print("app_private.der not found")
             sys.exit(-1)
@@ -40,11 +41,11 @@ if __name__ == "__main__":
         with open(app_public_key_file_path, "rb") as binary_file:
             app_public_key = binary_file.read()
 
-        request_id  = epd_util.get_request_id(True)
+        request_id  = str(1) # Fixed request_id to 1
         request_utc = epd_util.get_current_request_utc()
         response = epd_util.send_device_unregister_request(api_url, request_id, request_utc, app_private_key)
 
-        epd_public_key_file_path = f"{os.getcwd()}/epd_public_key.der"
+        epd_public_key_file_path = f"{art_sdk_root}/epd_public_key.der"
         if os.path.exists(epd_public_key_file_path):
             os.remove(epd_public_key_file_path)
 

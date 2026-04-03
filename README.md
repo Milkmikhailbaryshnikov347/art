@@ -157,7 +157,10 @@ For example, you could write a Python script that monitors a specific local fold
 
 ## Available Local Control Scripts
 
-The `examples/` directory contains various scripts illustrating API usage so you don't have to build the packet signatures from scratch:
+The `examples/` directory contains various scripts illustrating API usage so you don't have to build the packet signatures from scratch.
+
+> [!TIP]
+> For specific setup instructions regarding **Home Assistant**, please refer to [examples/HomeAssistant/README.md](examples/HomeAssistant/README.md).
 
 | Script Name | Purpose / Description |
 | :--- | :--- |
@@ -170,9 +173,12 @@ The `examples/` directory contains various scripts illustrating API usage so you
 | `device_unregister.py` | Releases your developer HTTP control, allowing the device to be re-paired with the official smartphone app cloud. |
 | `convert_image.py` | A wrapper for ImageMagick that transforms standard images into Spectra 6 specific dithered `.s6` binary payloads. |
 | `display_local_image.py` | Pushes an '.s6' file over HTTP with a signed payload to update the E-Ink display immediately. |
-| `display_weather_info.py` | An example automation script demonstrating how to fetch weather data, parse it, and construct/upload an image for the frame. |
+| `HomeAssistant/display_weather_info.py` | Fetches weather data from the Home Assistant API and displays it on the frame. |
+| `HomeAssistant/display_calendar_event.py` | Fetches calendar events from the Home Assistant API and displays them on the frame. |
+| `HomeAssistant/display_camera_snapshot.py` | Fetches a camera snapshot from the Home Assistant API and displays it on the frame. |
 | `folder_sync.py` | (Coming soon) A reference automation script that monitors a local folder and cycles through images on the frame. |
 | `epd_util.py` | Shared cryptographic and networking utility functions utilized by the other HTTP API example scripts. |
+
 
 ---
 

@@ -31,8 +31,8 @@ if __name__ == "__main__":
 
         api_url = f"http://smartwiz-art-{device_id}.local/api/control/request"
 
-        epd_util.initialize_request_id_file(os.getcwd(), 0)
-        request_id = epd_util.get_request_id(True)
+        # Fixed request_id to 1
+        request_id = str(1)
         request_utc = epd_util.get_current_request_utc()
 
         epd_public_key_file_path = f"{os.getcwd()}/epd_public_key.der"
@@ -51,8 +51,6 @@ if __name__ == "__main__":
         epd_public_key = serialization.load_der_public_key(epd_public_key_bin)
         encrypted_image = epd_util.make_encrypted_image(0, s6_image_file_path, epd_public_key, cbc_iv, x_offset, y_offset, witdh, height, caption, orientation)
 
-        epd_util.initialize_request_id_file(os.getcwd(), 0)
-        request_id = epd_util.get_request_id(True)
         request_utc = epd_util.get_current_request_utc()
         response = epd_util.send_image_upload_request(api_url, request_id, request_utc, app_private_key, encrypted_image)
         json_resp = response.json()
@@ -60,7 +58,6 @@ if __name__ == "__main__":
 
         file = json_resp["file"]
 
-        request_id  = epd_util.get_request_id(True)
         request_utc = epd_util.get_current_request_utc()
         user_name   = "smartwizart-cli-user"
         user_comment = "user image by smartwizart-cli"
